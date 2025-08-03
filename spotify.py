@@ -14,7 +14,7 @@ SCRIPT_LICENSE = "MIT"
 SCRIPT_DESC = "Announce current Spotify track with /np"
 
 # Path to your existing Limnoria Spotify files
-LIMNORIA_SPOTIFY_DIR = "/home/USER/limnoria/plugins/Spotify"
+LIMNORIA_SPOTIFY_DIR = "/home/klapvogn/limnoria/plugins/Spotify"
 CREDENTIALS_PATH = join(LIMNORIA_SPOTIFY_DIR, "spotify_credentials.json")
 CACHE_PATH = join(LIMNORIA_SPOTIFY_DIR, ".spotify_cache")
 REDIRECT_URI = "http://localhost:8080"
@@ -85,8 +85,8 @@ class SpotifyClient:
             "open_browser": False
         })
         
-        debug_print(f"Please visit this URL to authenticate: {auth_url}")
-        debug_print("After authorization, run /spotify_set_token with the code from the URL")
+ #       debug_print(f"Please visit this URL to authenticate: {auth_url}")
+ #       debug_print("After authorization, run /spotify_set_token with the code from the URL")
         
         try:
             webbrowser.open(auth_url)
@@ -175,24 +175,17 @@ class SpotifyClient:
 
 def format_track_info(track_data):
     """Format track information for display"""
-    if not track_data or not track_data.get("is_playing", True):
-        return None
-    
-    # Track info
+    # We assume track is playing since we checked before calling
     item = track_data.get("item", {})
     artists = ", ".join([artist["name"] for artist in item.get("artists", [])])
     track_name = item.get("name", "Unknown Track")
     album_name = item.get("album", {}).get("name", "Unknown Album")
-    # Get Spotify URL
     url = item.get('external_urls', {}).get('spotify', '')
     url_text = f"Listen: {url}" if url else ""
-
-    # Add duration and progress information
     duration_ms = item.get("duration_ms", 0)
     progress_ms = track_data.get("progress_ms", 0)
 
     def ms_to_minutes_seconds(ms):
-        """Convert milliseconds to minutes:seconds format."""
         total_seconds = ms // 1000
         minutes = total_seconds // 60
         seconds = total_seconds % 60
@@ -211,17 +204,27 @@ def np_command_cb(data, buffer, args):
     global spotify
     try:
         track_data = spotify.get_current_track()
-        if not track_data:
-            debug_print("Couldn't get current track")
-            return weechat.WEECHAT_RC_OK
         
+        # First check if we got any response at all
+        if track_data is None:
+            weechat.command(buffer, "Error checking current track status")
+            return weechat.WEECHAT_RC_OK
+            
+        # Explicitly check the is_playing flag
+        if not track_data.get('is_playing', True):
+            weechat.command(buffer, "No track currently playing in the channel")
+            return weechat.WEECHAT_RC_OK
+            
+        # Only try to format if we know a track is playing
         track_info = format_track_info(track_data)
-        if track_info:
-            weechat.command(buffer, f"{track_info}")
+        if track_info:  # This is just a safety check
+            weechat.command(buffer, track_info)
         else:
-            debug_print("No track currently playing")
+            weechat.command(buffer, "No track currently playing in the channel")
+            
     except Exception as e:
         debug_print(f"Error in np_command_cb: {str(e)}")
+        weechat.command(buffer, "Error checking current track")
     
     return weechat.WEECHAT_RC_OK
 
@@ -260,5 +263,4 @@ if __name__ == "__main__" and weechat.register(
     
     except Exception as e:
         debug_print(f"Initialization failed: {str(e)}")
-
         debug_print(f"Please check your credentials in {LIMNORIA_SPOTIFY_DIR}")
