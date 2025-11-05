@@ -14,7 +14,7 @@ SCRIPT_LICENSE = "MIT"
 SCRIPT_DESC = "Announce current Spotify track with /np"
 
 # Path to your existing Limnoria Spotify files
-LIMNORIA_SPOTIFY_DIR = "/home/klapvogn/limnoria/plugins/Spotify"
+LIMNORIA_SPOTIFY_DIR = "/home/xxxx/limnoria/plugins/Spotify"
 CREDENTIALS_PATH = join(LIMNORIA_SPOTIFY_DIR, "spotify_credentials.json")
 CACHE_PATH = join(LIMNORIA_SPOTIFY_DIR, ".spotify_cache")
 REDIRECT_URI = "http://localhost:8080"
@@ -263,4 +263,5 @@ if __name__ == "__main__" and weechat.register(
     
     except Exception as e:
         debug_print(f"Initialization failed: {str(e)}")
+
         debug_print(f"Please check your credentials in {LIMNORIA_SPOTIFY_DIR}")
