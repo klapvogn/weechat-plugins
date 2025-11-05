@@ -28,5 +28,6 @@ Then you need to fill out your `spotify_credentials.json` with the content from 
 
 `refresh_token` is what you get from step 2
 
-Now you should be able to do: `+np` (+) depending on your config
+Now you should be able to do: `/np`
+
 
